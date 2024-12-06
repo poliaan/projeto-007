@@ -1,9 +1,25 @@
 <?php
-require 'produtos.php';
 if(isset($_GET['id'])){
     $id = $_GET['id'];
-    $produto = $produtos[$id];
-    $ImgProd = "{$produto['modelo']}-{$produto['cores'][0]}";
+
+    $stmt = $pdo ->query("SELECT * FROM produtos WHERE id = $id");
+    $produto = $stmt->fetchAll();
+
+    $prodNome = $produto[0]['nome'];
+    $prodModelo = $produto[0]['modelo'];
+    $prodCategoria = $produto[0]['categoria'];
+    $prodPreco = $produto[0]['preco'];
+    $prodDesconto = $produto[0]['desconto'];
+
+    $qColor = $pdo -> query("SELECT * FROM cores WHERE prod_id = $id");
+    $cores = $qColor -> fetchAll();
+    $cor = $cores[0]['cor'];
+
+    $product_file = "{$prodModelo}-{$cor}";
+
+    $qSizes = $pdo->query("SELECT tamanho FROM tamanhos WHERE prod_id = $id");
+    $tamanhos = $qSizes-> fetchAll();
+
 }else{
     echo 'Produto não localizado';
 }
@@ -12,14 +28,14 @@ if(isset($_GET['id'])){
 <div class="product">
     <div class="product-img">
         <div class="large">
-            <img src="assets/shoes/<?= $ImgProd; ?>-1.avif" alt="" id="large">
+            <img src="assets/shoes/<?= $product_file; ?>-1.avif" alt="" id="large">
         </div>
         <div class="thumbs">
             <?php
             for($i = 1; $i <= 8; $i++){
                 ?>
                 <div class="thumbnail" onmouseover="changeImage('1')">
-                <img src="assets/shoes/<?= "{$ImgProd}-{$i}.avif"; ?>" alt="" id="thumb1">
+                <img src="assets/shoes/<?= "{$product_file}-{$i}.avif"; ?>" alt="" id="thumb1">
             </div>
             <?php
             }
@@ -30,8 +46,8 @@ if(isset($_GET['id'])){
 
     <div class="product-desc">
 
-        <h1><?= $produto['nome']; ?></h1>
-        <h3><?= $produto['categoria']; ?></h3>
+        <h1><?= "{$prodNome}"; ?></h1>
+        <h3><?= "{$prodCategoria}"; ?></h3>
     
         <div class="classification">
             <div class="stars">
@@ -51,8 +67,8 @@ if(isset($_GET['id'])){
                 <h2>
                     <span>
                         <?php
-                        $preco = $produto['preco'];
-                        $desconto = $produto['desconto'];
+                        $preco = $prodPreco;
+                        $desconto = $prodDesconto;
                         $precoFormatado = emReal(novoPreco($preco,$desconto));
                         echo $precoFormatado;
                         ?>
@@ -75,11 +91,11 @@ if(isset($_GET['id'])){
 
         <div class="color-selector">
             <?php
-            $colors = $produto['cores'];
-            foreach ($colors as $color) {
+            foreach ($cores as $cor) {
+                $Selecionacor = $cor['cor'];
             ?>
-                <div onmousedown="colorSelector('<?= $color; ?>')" id="<?= "{$color}"; ?>"  class="choice">
-                    <img src="assets/shoes/<?= "{$produto['modelo']}-{$color}-1.avif"; ?>" alt="">
+                <div onmousedown="colorSelector('<?= $Selecionacor; ?>')" id="<?= "{$Selecionacor}"; ?>"  class="choice">
+                    <img src="assets/shoes/<?= "{$prodModelo}-{$Selecionacor}-1.avif"; ?>" alt="">
                 </div>
             <?php    
             }
@@ -89,8 +105,9 @@ if(isset($_GET['id'])){
          <div class="size">
             <h3>Tamanhos</h3>
             <?php
+                $Tamanhos = array_column($tamanhos, 'tamanho');
                 for ($s = 35; $s <= 44; $s++){
-                    if (in_array($s, $produto['tamanhos'])) {
+                    if (in_array($s, $Tamanhos)) {
                 ?>
                         <input type="radio" class="trigger" name="tamanhos" id="<?=$s; ?>">
                         <label for="<?= $s; ?>"><?= $s; ?></label>
